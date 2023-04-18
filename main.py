@@ -121,7 +121,7 @@ def listsubtractor(L,M):
 
 #Class for a quiver defined via skew-symmetric matrix
 class Quiver():
-    def __init__(self, B,name):
+    def __init__(self,B,name):
         self.nodes = [i + 1 for i in range(B.shape[0])]
         self.B = B
         self.name = name
@@ -310,6 +310,15 @@ class Quiver():
                     C = mutate(C,i)
             Mat.append(C)
         return Mut
+    def eulerform(self,a,b):
+        counter = 0
+        for i in range(len(a)):
+            counter += a[i]*b[i]
+        for i in range(len(a)):
+            for j in range(len(b)):
+                if pos(self.B)[i,j] != 0:
+                    counter -= a[i]*b[j]
+        return counter
 
 def instate(k, n):
     A = np.zeros([(k - 1) * (n - k - 1), (k - 1) * (n - k - 1)])
@@ -330,8 +339,10 @@ def instate(k, n):
             t = j * (n - k - 1) + i
             A[t, t + (n - k)] = -1
             A[t + (n - k), t] = 1
-
     return A
+
+
+
 
 
 
@@ -400,7 +411,7 @@ class Gr_kappa:
         P.sort(reverse=True)
         T = [l-p for (l,p) in zip(L,P)]
         return T
-    def kappa(self, I,J):
+    def kappa(self,J,I): #this works
         mu = self.indToPart(I)
         nu = self.indToPart(J)
         if any(self.comp(mu,nu)):
@@ -412,40 +423,37 @@ class Gr_kappa:
             return counter
         else:
             return 0
-    def dec(self,list):
+    def lam(self,l1,l2):
+        return self.kappa(l2,l1)-self.kappa(l1,l2)
+    def lam_list(self,a,b,c,d):
+        counter = 0
+        for i in range(len(a)):
+            for j in range(len(b)):
+                counter += c[i]*d[j]*self.lam(a[i],b[j])
+        return counter
+
+    def dec(self,list,l2):
         counter = 0
         while len(list) > 1:
-            for i in range(len(list) - 1):
-                counter += self.kappa(list[0],list[i+1])
+            for i in range(1,len(list)):
+                counter += l2[0]*l2[i]*self.lam(list[i],list[0])
             del list[0]
-        return counter
-    def plusMinusDec(self,list1,list2):
+            del l2[0]
+        return counter/2
+    def left_to_right(self,l1,l2):
         counter = 0
-        counter += self.dec(list1)
-        counter -= self.dec(list2)
-        while len(list1) > 1:
-            for i in range(len(list1)):
-                for j in range(len(list2)):
-                    counter += self.kappa(list2[j],list1[i])
-                del list1[i]
+        while len(l1) > 0:
+            for j in range(len(l2)):
+                counter += self.lam(l1[-1],l2[j])
+            del l1[-1]
         return counter
-
-
-
-
-
-
-
-
-
-
-
-A = np.array([[0,1,0,0],[-1,0,1,-1],[0,-1,0,1],[0,1,-1,0]])
-#A = np.array([[0,1,1,0,-1,0,0,-1],[-1,0,1,0,0,0,0,0],[-1,-1,0,1,0,0,0,0],[0,0,-1,0,1,0,0,0],[1,0,0,-1,0,1,0,0],[0,0,0,0,-1,0,1,0],[0,0,0,0,0,-1,0,1],[1,0,0,0,0,0,-1,0]])
-Q = Quiver(A, name = 'Test')
-Q.graph([])
-Q.acyclicoptimiser(1,1,Graph = True, verbose = True)
-#print(cyclist(A,3))
+    def inv_left_to_right(self,l1,l2):
+        counter = 0
+        while len(l1) > 0:
+            for j in range(len(l2)):
+                counter += (-1)*self.lam(l1[-1],l2[j])
+            del l1[-1]
+        return counter
 
 def edge(A):
     Lst = []
@@ -475,14 +483,8 @@ def tilttester(k,n):
     plt.show()
 
 
-#print(tilttester(5,12))
-# Qui = Quiver(tilttester(3,9), name = '')
-# Qui.graph([])
-#
-# T = Gr(3,8,'GR(3,7)')
-# Q = Quiver(T.instate, 'Gr(3,7)')
-# Q.acyclicoptimiser(3, 3, Graph = True, verbose = False, save = False)
-#
-#
-# K = Gr_kappa(3,6)
-# print(K.plusMinusDec([[1,4,5],[1,2,6],[2,3,4]],[[1,2,5],[1,2,5],[1,3,4],[1,3,4]]))
+
+
+
+
+
