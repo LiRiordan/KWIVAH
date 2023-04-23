@@ -45,6 +45,23 @@ def iscycleno(A):
         r += (np.trace(matrix_power(M,i)))
     return r
 
+def list_to_mat(lst):
+    k = len(lst[0])
+    B = np.zeros([k,k])
+    for i in range(len(lst)):
+        for j in range(len(lst[i])):
+            B[i,j+i] = lst[i][j]
+    for k in range(1,len(lst[0])):
+        for l in range(k,len(lst[0])):
+            B[l,k] = - B[k,l]
+    return B
+
+def randy_bandy(B,l):
+    while l > 0:
+        i = random.randint(1,B.shape[0])
+        B = mutate(B,i)
+        l -= 1
+    return B
 
 
 
@@ -319,6 +336,7 @@ class Quiver():
                 if pos(self.B)[i,j] != 0:
                     counter -= a[i]*b[j]
         return counter
+
 
 def instate(k, n):
     A = np.zeros([(k - 1) * (n - k - 1), (k - 1) * (n - k - 1)])
