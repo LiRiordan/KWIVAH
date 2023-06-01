@@ -285,12 +285,12 @@ class Quiver():
         Lst = Liist[index_min]
         L.clear()
         for j in range(len(Lst)):
-           L.append(self.cycleno(self.mut(A,Lst[:j])))  ##this appears to calculating cycles again?!?!
+           L.append(self.cycleno(self.mut(A,Lst[:j])))
         ind_min = min(range(len(L)), key=L.__getitem__)
         P = Lst[:ind_min]
         if Graph:
             M = self.mut(A,P)
-            New = Quiver(M)
+            New = Quiver(M,'')
             New.graph([])
         return self.mut(A,P), P
 
@@ -472,6 +472,13 @@ class Gr_kappa:
                 counter += (-1)*self.lam(l1[-1],l2[j])
             del l1[-1]
         return counter
+    def lam_matrix(self,l):
+        k = len(l)
+        B = np.zeros([k,k])
+        for i in range(k):
+            for j in range(k):
+                B[i,j] = self.lam(l[i],l[j])
+        return B
 
 def edge(A):
     Lst = []
@@ -499,6 +506,20 @@ def tilttester(k,n):
     G.add_edges_from(edge(B))
     nx.draw(G)
     plt.show()
+
+Q = Gr_kappa(3,6)
+l = [[1,2,3],[2,3,4],[3,4,5],[4,5,6],[1,5,6],[1,2,6],[1,2,4],[1,2,5],[1,3,4],[1,4,5]]
+A = Q.lam_matrix(l)
+print(A)
+v_1 = np.array([0,0,-1,1,-1,0,-1,1,1,0])
+v_2 = np.array([1,0,-1,1,-1,0,-1,0,0,1])
+v_3 = np.array([[0],[0],[1],[0],[1],[0],[0],[0],[0],[-1]])
+A_1 = np.matmul(v_1,A)
+print(A_1)
+A_2 = np.matmul(v_2,A)
+print(A_2)
+print(f'lambda1 is {np.matmul(A_1,v_3)}')
+print(f'lambda2 is {np.matmul(A_2,v_3)}')
 
 
 
