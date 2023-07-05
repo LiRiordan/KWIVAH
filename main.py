@@ -621,13 +621,13 @@ ind_26 = np.array([[0],[1],[0],[0],[0],[1],[0],[0],[-1],[1],[0],[0],[-1]])
 ind_28 = np.array([[0],[1],[0],[0],[0],[0],[0],[1],[-1],[0],[0],[0],[0]])
 ind_46 = np.array([[0],[0],[0],[1],[0],[1],[0],[0],[0],[0],[0],[0],[-1]])
 ind_68 = np.array([[0],[0],[0],[0],[0],[1],[0],[1],[0],[0],[-1],[0],[0]])
-# b_1 = np.array([[-1,1,0,0,0,0,0,1,-1]])
-# b_2 = np.array([[0,0,-1,1,0,0,1,-1,0]])
-# b_3 = np.array([[0,0,0,0,-1,1,-1,0,1]])
-#
-# ind_m1 = ind_24 + ind_26.transpose()
-#
-# print(0.5*np.matmul(np.matmul(ind_m1 - b_1 -b_3 - b_2 ,A),ind_46- b_2.transpose()-b_3.transpose()))
+b_1 = np.array([[-1,1,0,0,0,0,0,0,0,1,0,-1,0]])
+b_2 = np.array([[0,0,-1,1,0,0,0,0,1,-1,0,0,0]])
+b_3 = np.array([[0,0,0,0,0,0,0,0,-1,0,1,1,-1]])
+b_4 = np.array([[0,0,0,0,-1,1,0,0,0,1,-1,0,0]])
+b_5 = np.array([[0,0,0,0,0,0,-1,1,0,-1,0,0,1]])
+
+
 def ind_check(ind,l):
     if ind.shape[0] == 1:
         return [(p,sorted(t)) for (t,p) in zip(l,ind.tolist()[0]) if p != 0]
@@ -636,9 +636,30 @@ def ind_check(ind,l):
         return [(p,sorted(t)) for (t,p) in zip(l,k) if p != 0]
 
 
+m_1 = ind_24 + ind_26.transpose()
+m_2 = ind_24 + ind_26.transpose() + ind_28.transpose()
+m_3 = ind_24 + ind_26.transpose() + ind_28.transpose() + ind_46.transpose()
 
+# print(0.5*np.matmul(np.matmul(ind_24,A),ind_26))
 
-
+# q_1 = [[],[2],[1,2]]
+# q_2 = [[],[1],[4],[1,4],[1,3,4]]
+# q_3 = [[],[1],[1,3],[1,3,5]]
+# q_4 = [[],[4],[3,4],[2,3,4]]
+# q_5 = [[],[5],[4,5]]
+#
+#
+# comp = []
+# for i_1 in range(len(q_1)):
+#     for i_2 in range(len(q_2)):
+#         for i_3 in range(len(q_3)):
+#             for i_4 in range(len(q_4)):
+#                 for i_5 in range(len(q_5)):
+#                     if sorted(q_1[i_1] + q_2[i_2] + q_3[i_3] + q_4[i_4] + q_5[i_5]) == [1,2,3,4,5]:
+#                         comp.append([q_1[i_1],q_2[i_2],q_3[i_3],q_4[i_4],q_5[i_5]])
+# print(len(comp))
+# for i in range(len(comp)):
+#     print(comp[i])   #very useful trick when computing single coefficient!!
 
 
 
