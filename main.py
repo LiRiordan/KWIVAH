@@ -518,148 +518,99 @@ def tilttester(k,n):
 # ind_235 = np.array([[0,1,0,0,0,0,-1,1,0,0]])
 # # w_3 = np.array([[0,0,0,0,0,0,-1,1,1,0]])
 # ind_356 = np.array([[0],[0],[1],[0],[1],[0],[0],[0],[0],[-1]])
-#
-# ind_m1 = ind_235 + ind_356.transpose()
-#
-#
-#
 # ind_246 = np.array([[0],[1],[0],[0],[0],[1],[0],[-1],[-1],[1]])
-#
 # b_1 = np.array([[-1,0,0,0,0,0,0,1,1,-1]])
 # b_4 = np.array([[0,0,0,0,-1,1,-1,0,0,1]])
 # b_2 = np.array([[0,1,-1,0,0,0,-1,0,0,1]])
 # b_3 = np.array([[0,0,1,-1,1,0,1,-1,-1,0]])
-#
-#
-#
-# print(0.5*np.matmul(np.matmul(ind_m1 - b_3,A),ind_246 - b_2.transpose() - b_4.transpose()))
+
+
+def reg(l,A):
+    p = 0
+    tot = 0
+    while p < len(l):
+        tot += 0.5 * (np.matmul(np.matmul(sum(l[:p + 1]), A), l[p].transpose()))
+        p += 1
+    return tot
+
+class Coeff():
+    def __init__(self,k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect):
+        self.k = k
+        self.n = n
+        self.tilt_list = tilt_list
+        self.ind_list = ind_list
+        self.beta_list = beta_list
+        self.submod_list = submod_list
+        self.dim_vect = dim_vect
+        self.Q = Gr_kappa(self.k,self.n)
+        self.A = self.Q.lam_matrix(self.tilt_list)
+        self.int_list = [len(j) for j in self.submod_list]
+        self.reg = reg(self.ind_list,self.A)
+
+
+    def comp(self):
+        collect = []
+        for index in np.ndindex(tuple(self.int_list)):
+            f = list(index)
+            q = []
+            for i in range(len(f)):
+                q += self.submod_list[i][f[i]]
+            if sorted(q) == self.dim_vect:
+                collect.append([self.submod_list[i][f[i]] for i in range(len(f))])
+        return collect
+
+    def coeff(self):
+        ans = []
+        for j in self.comp():
+            total = 0
+            new_list = []
+            for i in range(len(j)):
+                v = ind_list[i]
+                for m in j[i]:
+                     v = v - beta_list[m-1]
+                new_list.append(v)
+            for h in range(len(new_list)):
+                total += 0.5*(np.matmul(np.matmul(sum(new_list[:h+1]),self.A),new_list[h].transpose()))
+            ans.append(float((total - self.reg)[0]))
+        return ans
 
 
 
+k = 2
+n = 8
+Q = Gr_kappa(k,n)
+tilt_list = [[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[1,8],[1,3],[1,5],[1,7],[3,5],[5,7]]
+A = Q.lam_matrix(tilt_list)
 
-
-# m_1 = [[1,2,3],[1,4,5]]
-# m_2 = [[1,2,5],[1,3,4]]
-# m_3 = [[1,2,4]]
-# m_4 = [[1,2,6],[2,3,4]]
-# m_5 = [[1,2,5],[1,3,4]]
-# t_1 = 0
-# t_2 = 0
-# for i in m_1:
-#     for j in m_4:
-#         t_1 += Q.lam(i,j)
-# for i in m_2:
-#     for j in m_4:
-#         t_2 += Q.lam(i,j)
-# for i in m_1:
-#     for j in m_5:
-#         t_1 += Q.lam(j,i)
-# for i in m_2:
-#     for j in m_5:
-#         t_2 += Q.lam(j,i)
-# for i in m_3:
-#     for j in m_4:
-#         t_1 += Q.lam(j,i)
-#         t_2 += Q.lam(j,i)
-# for i in m_3:
-#     for j in m_5:
-#         t_1 += Q.lam(i,j)
-#         t_2 += Q.lam(i,j)
-#
-# print(0.5*t_1)
-# print(0.5*t_2)
-#
-#
-# Q = Gr_kappa(2,6)
-#
-#
-# a_1 = [[1,3],[1,2],[3,5]]
-# s_1 = [-1,1,1]
-#
-# a_2 = [[1,3],[1,5],[2,3]]
-# s_2 = [-1,1,1]
-#
-# a_3 = [[3,5],[2,3],[4,5]]
-# s_3 = [-1,1,1]
-#
-# a_4 = [[1,3],[3,5],[1,5],[2,3],[3,4]]
-# s_4 = [-1,-1,1,1,1]
-#
-# a_5 = [[1,3],[1,2],[3,4]]
-# s_5 = [-1,1,1]
-#
-# a_6 = [[1,3],[1,6],[2,3]]
-# s_6 = [-1,1,1]
-#
-# a_7 = [[1,3],[1,5],[1,2],[1,6],[3,5]]
-# s_7 = [-1,-1,1,1,1]
-#
-# a_8 = [[1,5],[1,2],[5,6]]
-# s_8 = [-1,1,1]
-#
-#
-# l_1 = [a_1,a_2]
-# sign_1 = [s_1,s_2]
-#
-# l_2 = [a_3,a_4,a_5]
-# sign_2 = [s_3,s_4,s_5]
-#
-# l_3 = [a_6,a_7,a_8]
-# sign_3 = [s_6,s_7,s_8]
-#
-# for k in range(len(l_1)):
-#     for j in range(len(l_2)):
-#         for i in range(len(l_3)):
-#             print(l_1[k] + l_2[j] + l_3[i])
-
-
-Q = Gr_kappa(2,8)
-l = [[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[1,8],[1,3],[1,5],[1,7],[3,5],[5,7]]
-A = Q.lam_matrix(l)
 ind_24 = np.array([[0,1,0,1,0,0,0,0,0,0,0,-1,0]])
-ind_26 = np.array([[0],[1],[0],[0],[0],[1],[0],[0],[-1],[1],[0],[0],[-1]])
-ind_28 = np.array([[0],[1],[0],[0],[0],[0],[0],[1],[-1],[0],[0],[0],[0]])
-ind_46 = np.array([[0],[0],[0],[1],[0],[1],[0],[0],[0],[0],[0],[0],[-1]])
-ind_68 = np.array([[0],[0],[0],[0],[0],[1],[0],[1],[0],[0],[-1],[0],[0]])
+ind_26 = np.array([[0,1,0,0,0,1,0,0,-1,1,0,0,-1]])
+ind_28 = np.array([[0,1,0,0,0,0,0,1,-1,0,0,0,0]])
+ind_46 = np.array([[0,0,0,1,0,1,0,0,0,0,0,0,-1]])
+ind_68 = np.array([[0,0,0,0,0,1,0,1,0,0,-1,0,0]])
+ind_list = [ind_24,ind_26,ind_28,ind_46,ind_68]
+
 b_1 = np.array([[-1,1,0,0,0,0,0,0,0,1,0,-1,0]])
 b_2 = np.array([[0,0,-1,1,0,0,0,0,1,-1,0,0,0]])
 b_3 = np.array([[0,0,0,0,0,0,0,0,-1,0,1,1,-1]])
 b_4 = np.array([[0,0,0,0,-1,1,0,0,0,1,-1,0,0]])
 b_5 = np.array([[0,0,0,0,0,0,-1,1,0,-1,0,0,1]])
+beta_list = [b_1,b_2,b_3,b_4,b_5] ## make sure the beta_list matches the order on ind_list
+
+q_1 = [[],[2],[1,2]]
+q_2 = [[],[1],[4],[1,4],[1,3,4]]
+q_3 = [[],[1],[1,3],[1,3,5]]
+q_4 = [[],[4],[3,4],[2,3,4]]
+q_5 = [[],[5],[4,5]]
+submod_list = [q_1,q_2,q_3,q_4,q_5] ## similarly need to match the ordering with previous lists
+
+dim_vect = [1,2,3,4,5]
+
+M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
+#print(M.coeff()) # gives correct answer of 3q^{2} + 5 + 3q^{-2}
 
 
-def ind_check(ind,l):
-    if ind.shape[0] == 1:
-        return [(p,sorted(t)) for (t,p) in zip(l,ind.tolist()[0]) if p != 0]
-    else:
-        k = [i for [i] in ind.tolist()]
-        return [(p,sorted(t)) for (t,p) in zip(l,k) if p != 0]
 
 
-m_1 = ind_24 + ind_26.transpose()
-m_2 = ind_24 + ind_26.transpose() + ind_28.transpose()
-m_3 = ind_24 + ind_26.transpose() + ind_28.transpose() + ind_46.transpose()
-
-# print(0.5*np.matmul(np.matmul(ind_24,A),ind_26))
-
-# q_1 = [[],[2],[1,2]]
-# q_2 = [[],[1],[4],[1,4],[1,3,4]]
-# q_3 = [[],[1],[1,3],[1,3,5]]
-# q_4 = [[],[4],[3,4],[2,3,4]]
-# q_5 = [[],[5],[4,5]]
-#
-#
-# comp = []
-# for i_1 in range(len(q_1)):
-#     for i_2 in range(len(q_2)):
-#         for i_3 in range(len(q_3)):
-#             for i_4 in range(len(q_4)):
-#                 for i_5 in range(len(q_5)):
-#                     if sorted(q_1[i_1] + q_2[i_2] + q_3[i_3] + q_4[i_4] + q_5[i_5]) == [1,2,3,4,5]:
-#                         comp.append([q_1[i_1],q_2[i_2],q_3[i_3],q_4[i_4],q_5[i_5]])
-# print(len(comp))
-# for i in range(len(comp)):
-#     print(comp[i])   #very useful trick when computing single coefficient!!
 
 
 
