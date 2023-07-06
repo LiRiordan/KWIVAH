@@ -663,6 +663,37 @@ class Coeff(): # this will allow us to quickly and accurately compute coefficien
 # print(M.coeff()) ###gives correct answer of 2q + 2q^{-1}
 
 
+### Case 3: product of four indecs in Gr(2,8).
+
+# k = 2
+# n = 8
+# tilt_list = [[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[1,8],[1,3],[1,5],[1,7],[3,5],[5,7]]
+#
+# ind_24 = np.array([[0,1,0,1,0,0,0,0,0,0,0,-1,0]])
+# ind_28 = np.array([[0,1,0,0,0,0,0,1,-1,0,0,0,0]])
+# ind_46 = np.array([[0,0,0,1,0,1,0,0,0,0,0,0,-1]])
+# ind_68 = np.array([[0,0,0,0,0,1,0,1,0,0,-1,0,0]])
+# ind_list = [ind_24,ind_28,ind_46,ind_68]
+#
+# b_1 = np.array([[-1,1,0,0,0,0,0,0,0,1,0,-1,0]])
+# b_2 = np.array([[0,0,-1,1,0,0,0,0,1,-1,0,0,0]])
+# b_3 = np.array([[0,0,0,0,0,0,0,0,-1,0,1,1,-1]])
+# b_4 = np.array([[0,0,0,0,-1,1,0,0,0,1,-1,0,0]])
+# b_5 = np.array([[0,0,0,0,0,0,-1,1,0,-1,0,0,1]])
+# beta_list = [b_1,b_2,b_3,b_4,b_5]
+#
+# q_1 = [[],[2],[1,2]]
+# q_2 = [[],[1],[1,3],[1,3,5]]
+# q_3 = [[],[4],[3,4],[2,3,4]]
+# q_4 = [[],[5],[4,5]]
+# submod_list = [q_1,q_2,q_3,q_4] ## Need to match the ordering with previous lists.
+#
+# dim_vect = [1,2,3,4,5]
+#
+# M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
+# print(M.coeff()) ### gives correct coefficient of 3q + 3q^{-1}
+
+
 
 
 
