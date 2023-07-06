@@ -511,11 +511,16 @@ def tilttester(k,n):
     plt.show()
 
 
+def vect_check(v,tilt_list):
+    K = v[0].tolist()
+    P = [(sorted(t),p) for (t,p) in zip(tilt_list,K) if p != 0]
+    return P  ### Useful for checking all vectors have been entered correctly.
+
 def reg(l,A):
     p = 0
     tot = 0
     while p < len(l):
-        tot += 0.5 * (np.matmul(np.matmul(sum(l[:p + 1]), A), l[p].transpose()))
+        tot += 0.5 * (sum(l[:p + 1]) @ A @ l[p].transpose())
         p += 1
     return tot
 
@@ -554,15 +559,17 @@ class Coeff(): # this will allow us to quickly and accurately compute coefficien
             total = 0
             new_list = []
             for i in range(len(j)):
-                v = self.ind_list[i]
-                for m in j[i]:
-                     v = v - self.beta_list[m-1]
-                new_list.append(v)
-            for h in range(len(new_list)):
-                total += 0.5*(np.matmul(np.matmul(sum(new_list[:h+1]),self.A),new_list[h].transpose()))
+                # v = self.ind_list[i]
+                # for m in j[i]:
+                #      v -= self.beta_list[m-1]
+                new_list.append(self.ind_list[i] - sum([self.beta_list[m-1] for m in j[i]]))
+            for h in range(len(new_list)-1):
+                total += 0.5 * (sum(new_list[:h + 1]) @ self.A @ new_list[h+1].transpose())
             ans.append(float((total - self.reg)[0]))
         return ans
 
+
+### Click on section below to expand examples.
 ### See these examples for how to use Coeff:
 
 ### Case 1: compute a coefficient in a product of five indecs in Gr(2,8).
@@ -595,7 +602,7 @@ class Coeff(): # this will allow us to quickly and accurately compute coefficien
 # dim_vect = [1,2,3,4,5]
 #
 # M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
-#print(M.coeff()) ### gives correct coefficient of 3q^{2} + 5 + 3q^{-2}
+# print(M.coeff()) ### gives correct coefficient of 3q^{2} + 5 + 3q^{-2}
 
 
 
@@ -624,6 +631,44 @@ class Coeff(): # this will allow us to quickly and accurately compute coefficien
 #
 # M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
 # print(M.coeff()) ### gives correct coefficient of 2q + 2q^{-1}
+
+
+### Case 3: product of three indecs in Gr(2,8).
+
+
+# k = 2
+# n = 8
+# tilt_list = [[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[1,8],[1,3],[1,5],[1,7],[3,5],[5,7]]
+# #
+# ind_36 = np.array([[0,0,0,0,0,1,0,0,0,0,0,1,-1]])
+# ind_38 = np.array([[0,0,0,0,0,0,0,1,0,-1,0,1,0]])
+# ind_68 = np.array([[0,0,0,0,0,1,0,1,0,0,-1,0,0]])
+# ind_list = [ind_36,ind_38,ind_68]
+# #
+# b_1 = np.array([[-1,1,0,0,0,0,0,0,0,1,0,-1,0]])
+# b_2 = np.array([[0,0,-1,1,0,0,0,0,1,-1,0,0,0]])
+# b_3 = np.array([[0,0,0,0,0,0,0,0,-1,0,1,1,-1]])
+# b_4 = np.array([[0,0,0,0,-1,1,0,0,0,1,-1,0,0]])
+# b_5 = np.array([[0,0,0,0,0,0,-1,1,0,-1,0,0,1]])
+# beta_list = [b_1,b_2,b_3,b_4,b_5]
+# #
+# q_1 = [[],[4],[3,4]]
+# q_2 = [[],[3],[3,5]]
+# q_3 = [[],[5],[4,5]]
+# submod_list = [q_1,q_2,q_3] ## Need to match the ordering with previous lists.
+# #
+# dim_vect = [3,4,5]
+# #
+# M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
+# print(M.coeff()) ###gives correct answer of 2q + 2q^{-1}
+
+
+
+
+
+
+
+
 
 
 
