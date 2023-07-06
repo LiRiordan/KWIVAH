@@ -88,7 +88,7 @@ def cyclist(A,t): #the slower but 'more accurate' cycle counting function
 
 
 
-#Combinatorial functions for lists of mutations
+#Combinatorial functions for lists of mutations (warning, many are quite slow)
 def spacecreator(l, k):
     return (list(i) for i in it.permutations(l,k))
 
@@ -138,7 +138,7 @@ def listsubtractor(L,M):
 
 #Class for a quiver defined via skew-symmetric matrix
 class Quiver():
-    def __init__(self,B,name):
+    def __init__(self,B,name = ''):
         self.nodes = [i + 1 for i in range(B.shape[0])]
         self.B = B
         self.name = name
@@ -278,7 +278,7 @@ class Quiver():
 
     def shortest(self,A, k, r=3, Graph = False):
         L = []
-        Liist = list(modspacecreator(self.nodes, k, r = r))
+        Liist = list(modspacecreator(self.nodes, k, r = r))  # can't remember why I used this dumb naming convention
         for i in Liist:
             L.append(self.loss_fn(A, i)) # A has to be the same shape as B.
         index_min = min(range(len(L)), key=L.__getitem__) #thank you stack exchange
@@ -519,15 +519,18 @@ def reg(l,A):
         p += 1
     return tot
 
-class Coeff():
+class Coeff(): # this will allow us to quickly and accurately compute coefficients
     def __init__(self,k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect):
-        self.k = k
-        self.n = n
-        self.tilt_list = tilt_list
-        self.ind_list = ind_list
-        self.beta_list = beta_list
-        self.submod_list = submod_list
-        self.dim_vect = dim_vect
+        self.k = k # These numbers define the
+        self.n = n # Grassmannian with which we are working.
+        self.tilt_list = tilt_list      # This is the list of summands of our tilting object.
+                                        # E.g. [[1,2],[2,3],[3,4],[1,4],[1,3]].
+        self.ind_list = ind_list    # An entry in this list is a vector with coordinates in tilt_list.
+                                    # E.g. ind = [12 + 34 - 13] goes to np.array([[1,0,1,0,-1]])
+        self.beta_list = beta_list # The order of these will be important for submod_list.
+        self.submod_list = submod_list  # In the same order as ind_list give the possible sub profiles
+                                        # for each module. The numbering of simples must match beta_list.
+        self.dim_vect = dim_vect        # This is denoted using multiples eg (2,1,1) would be [1,1,2,3].
         self.Q = Gr_kappa(self.k,self.n)
         self.A = self.Q.lam_matrix(self.tilt_list)
         self.int_list = [len(j) for j in self.submod_list]
@@ -551,52 +554,76 @@ class Coeff():
             total = 0
             new_list = []
             for i in range(len(j)):
-                v = ind_list[i]
+                v = self.ind_list[i]
                 for m in j[i]:
-                     v = v - beta_list[m-1]
+                     v = v - self.beta_list[m-1]
                 new_list.append(v)
             for h in range(len(new_list)):
                 total += 0.5*(np.matmul(np.matmul(sum(new_list[:h+1]),self.A),new_list[h].transpose()))
             ans.append(float((total - self.reg)[0]))
         return ans
 
+### See these examples for how to use Coeff:
+
+### Case 1: compute a coefficient in a product of five indecs in Gr(2,8).
+
+# k = 2
+# n = 8
+# tilt_list = [[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[1,8],[1,3],[1,5],[1,7],[3,5],[5,7]]
+#
+# ind_24 = np.array([[0,1,0,1,0,0,0,0,0,0,0,-1,0]])
+# ind_26 = np.array([[0,1,0,0,0,1,0,0,-1,1,0,0,-1]])
+# ind_28 = np.array([[0,1,0,0,0,0,0,1,-1,0,0,0,0]])
+# ind_46 = np.array([[0,0,0,1,0,1,0,0,0,0,0,0,-1]])
+# ind_68 = np.array([[0,0,0,0,0,1,0,1,0,0,-1,0,0]])
+# ind_list = [ind_24,ind_26,ind_28,ind_46,ind_68]
+#
+# b_1 = np.array([[-1,1,0,0,0,0,0,0,0,1,0,-1,0]])
+# b_2 = np.array([[0,0,-1,1,0,0,0,0,1,-1,0,0,0]])
+# b_3 = np.array([[0,0,0,0,0,0,0,0,-1,0,1,1,-1]])
+# b_4 = np.array([[0,0,0,0,-1,1,0,0,0,1,-1,0,0]])
+# b_5 = np.array([[0,0,0,0,0,0,-1,1,0,-1,0,0,1]])
+# beta_list = [b_1,b_2,b_3,b_4,b_5]
+#
+# q_1 = [[],[2],[1,2]]
+# q_2 = [[],[1],[4],[1,4],[1,3,4]]
+# q_3 = [[],[1],[1,3],[1,3,5]]
+# q_4 = [[],[4],[3,4],[2,3,4]]
+# q_5 = [[],[5],[4,5]]
+# submod_list = [q_1,q_2,q_3,q_4,q_5] ## Need to match the ordering with previous lists.
+#
+# dim_vect = [1,2,3,4,5]
+#
+# M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
+#print(M.coeff()) ### gives correct coefficient of 3q^{2} + 5 + 3q^{-2}
 
 
-k = 2
-n = 8
-Q = Gr_kappa(k,n)
-tilt_list = [[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[1,8],[1,3],[1,5],[1,7],[3,5],[5,7]]
-A = Q.lam_matrix(tilt_list)
 
-ind_24 = np.array([[0,1,0,1,0,0,0,0,0,0,0,-1,0]])
-ind_26 = np.array([[0,1,0,0,0,1,0,0,-1,1,0,0,-1]])
-ind_28 = np.array([[0,1,0,0,0,0,0,1,-1,0,0,0,0]])
-ind_46 = np.array([[0,0,0,1,0,1,0,0,0,0,0,0,-1]])
-ind_68 = np.array([[0,0,0,0,0,1,0,1,0,0,-1,0,0]])
-ind_list = [ind_24,ind_26,ind_28,ind_46,ind_68]
+### Case 2: compute a coefficient in product of three indecs in Gr(3,6).
 
-b_1 = np.array([[-1,1,0,0,0,0,0,0,0,1,0,-1,0]])
-b_2 = np.array([[0,0,-1,1,0,0,0,0,1,-1,0,0,0]])
-b_3 = np.array([[0,0,0,0,0,0,0,0,-1,0,1,1,-1]])
-b_4 = np.array([[0,0,0,0,-1,1,0,0,0,1,-1,0,0]])
-b_5 = np.array([[0,0,0,0,0,0,-1,1,0,-1,0,0,1]])
-beta_list = [b_1,b_2,b_3,b_4,b_5] ## make sure the beta_list matches the order on ind_list
-
-q_1 = [[],[2],[1,2]]
-q_2 = [[],[1],[4],[1,4],[1,3,4]]
-q_3 = [[],[1],[1,3],[1,3,5]]
-q_4 = [[],[4],[3,4],[2,3,4]]
-q_5 = [[],[5],[4,5]]
-submod_list = [q_1,q_2,q_3,q_4,q_5] ## similarly need to match the ordering with previous lists
-
-dim_vect = [1,2,3,4,5]
-
-M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
-#print(M.coeff()) # gives correct answer of 3q^{2} + 5 + 3q^{-2}
-
-
-
-
+# k = 3
+# n = 6
+# tilt_list = [[1,2,3],[2,3,4],[3,4,5],[4,5,6],[1,5,6],[1,2,6],[1,2,4],[1,2,5],[1,3,4],[1,4,5]]
+# ind_136 = np.array([[0,0,0,0,0,1,-1,0,1,0]])
+# ind_236 = np.array([[0,1,0,0,0,1,-1,0,0,0]])
+# ind_356 = np.array([[0,0,1,0,1,0,0,0,0,-1]])
+# ind_list = [ind_136,ind_236,ind_356]
+#
+# b_1 = np.array([[-1,0,0,0,0,0,0,1,1,-1]])
+# b_2 = np.array([[0,0,0,0,-1,1,-1,0,0,1]])
+# b_3 = np.array([[0,1,-1,0,0,0,-1,0,0,1]])
+# b_4 = np.array([[0,0,1,-1,1,0,1,-1,-1,0]])
+# beta_list = [b_1,b_2,b_3,b_4]
+#
+# q_1 = [[],[1],[1,2]]
+# q_2 = [[],[1],[1,2],[1,3],[1,2,3],[1,2,3,4]]
+# q_3 = [[],[4],[1,4]]
+# submod_list = [q_1,q_2,q_3]
+#
+# dim_vect = [1,1,2,3,4]
+#
+# M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
+# print(M.coeff()) ### gives correct coefficient of 2q + 2q^{-1}
 
 
 
