@@ -522,7 +522,8 @@ def reg(l,A):
     while p < len(l):
         tot += 0.5 * (sum(l[:p + 1]) @ A @ l[p].transpose())
         p += 1
-    return tot
+    return tot  ### this is the coefficient we would need to find for the cluster multiplication formula.
+
 
 class Coeff(): # this will allow us to quickly and accurately compute coefficients
     def __init__(self,k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect):
@@ -553,20 +554,22 @@ class Coeff(): # this will allow us to quickly and accurately compute coefficien
                 collect.append([self.submod_list[i][f[i]] for i in range(len(f))])
         return collect
 
-    def coeff(self):
+    def coeff(self,numbered = True):
         ans = []
         for j in self.comp():
             total = 0
             new_list = []
             for i in range(len(j)):
-                # v = self.ind_list[i]
-                # for m in j[i]:
-                #      v -= self.beta_list[m-1]
                 new_list.append(self.ind_list[i] - sum([self.beta_list[m-1] for m in j[i]]))
             for h in range(len(new_list)-1):
                 total += 0.5 * (sum(new_list[:h + 1]) @ self.A @ new_list[h+1].transpose())
             ans.append(float((total - self.reg)[0]))
-        return ans
+        if numbered:
+            k = {a for a in ans}
+            p = [(a,ans.count(a)) for a in k]
+            return p
+        else:
+            return ans
 
 
 ### Click on section below to expand examples.
@@ -602,7 +605,7 @@ class Coeff(): # this will allow us to quickly and accurately compute coefficien
 # dim_vect = [1,2,3,4,5]
 #
 # M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
-# print(M.coeff()) ### gives correct coefficient of 3q^{2} + 5 + 3q^{-2}
+# print(M.coeff()) ### gives coefficient of 3q^{2} + 5 + 3q^{-2}
 
 
 
@@ -635,7 +638,6 @@ class Coeff(): # this will allow us to quickly and accurately compute coefficien
 
 ### Case 3: product of three indecs in Gr(2,8).
 
-
 # k = 2
 # n = 8
 # tilt_list = [[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[1,8],[1,3],[1,5],[1,7],[3,5],[5,7]]
@@ -663,7 +665,7 @@ class Coeff(): # this will allow us to quickly and accurately compute coefficien
 # print(M.coeff()) ###gives correct answer of 2q + 2q^{-1}
 
 
-### Case 3: product of four indecs in Gr(2,8).
+### Case 4: product of four indecs in Gr(2,8).
 
 # k = 2
 # n = 8
@@ -692,6 +694,66 @@ class Coeff(): # this will allow us to quickly and accurately compute coefficien
 #
 # M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
 # print(M.coeff()) ### gives correct coefficient of 3q + 3q^{-1}
+
+### Case 5: three indecs and then two copies of that in Gr(2,6).
+
+# k = 2
+# n = 6
+# tilt_list = [[1,2],[2,3],[3,4],[4,5],[5,6],[1,6],[1,3],[1,5],[3,5]]
+#
+# ind_24 = np.array([[0,1,0,1,0,0,0,0,-1]])
+# ind_26 = np.array([[0,1,0,0,0,1,-1,0,0]])
+# ind_46 = np.array([[0,0,0,1,0,1,0,-1,0]])
+# ind_list = [ind_24, ind_24, ind_26, ind_26, ind_46, ind_46]
+#
+# b_1 = np.array([[-1,1,0,0,0,0,0,1,-1]])
+# b_2 = np.array([[0,0,0,0,-1,1,-1,0,1]])
+# b_3 = np.array([[0,0,-1,1,0,0,1,-1,0]])
+# beta_list = [b_1,b_2,b_3]
+#
+# q_1 = [[],[3],[1,3]]
+# q_2 = [[],[1],[1,2]]
+# q_3 = [[],[2],[2,3]]
+# submod_list = [q_1,q_1,q_2,q_2,q_3,q_3]
+#
+# dim_vect = [1,2,3]
+#
+# M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
+# print(M.coeff())  ### gives coefficient of 2q^{4} + 5q^{2} + 6 + 5q^{-2} + 2q^{-4}.
+
+### Case 6: four indecs in Gr(3,7).
+
+# k = 3
+# n = 7
+# tilt_list = [[1,2,3],[2,3,4],[3,4,5],[4,5,6],[5,6,7],[1,6,7],[1,2,7],[1,2,4],[1,2,5],[1,2,6],[1,3,4],[1,4,5],[1,5,6]]
+#
+# ind_235 = np.array([[0,1,0,0,0,0,0,-1,1,0,0,0,0]])
+# ind_236 = np.array([[0,1,0,0,0,0,0,-1,0,1,0,0,0]])
+# ind_356 = np.array([[0,0,1,0,0,0,0,0,0,0,0,-1,1]])
+# ind_137 = np.array([[0,0,0,0,0,0,1,-1,0,0,1,0,0]])
+# ind_list = [ind_235,ind_236,ind_356,ind_137]
+#
+# b_1 = np.array([[0,1,-1,0,0,0,0,-1,0,0,0,1,0]])
+# b_2 = np.array([[0,0,1,-1,0,0,0,1,-1,0,-1,0,1]])
+# b_3 = np.array([[0,0,0,1,-1,1,0,0,1,-1,0,-1,0]])
+# b_4 = np.array([[-1,0,0,0,0,0,0,0,1,0,1,-1,0]])
+# b_5 = np.array([[0,0,0,0,0,0,0,-1,0,1,0,1,-1]])
+# b_6 = np.array([[0,0,0,0,0,-1,1,0,-1,0,0,0,1]])
+# beta_list = [b_1,b_2,b_3,b_4,b_5,b_6]
+#
+# q_1 = [[],[4],[1,4]]
+# q_2 = [[],[4],[1,4],[4,5],[1,4,5],[1,2,4,5]]
+# q_3 = [[],[2],[2,4]]
+# q_4 = [[],[4],[4,5],[4,5,6]]
+# submod_list = [q_1,q_2,q_3,q_4]
+#
+# dim_vect = [1,2,4,4,5]
+#
+# M = Coeff(k,n,tilt_list,ind_list,beta_list,submod_list,dim_vect)
+# print(M.coeff()) ### gives coefficient of 2q^{2} + 4 + 2q^{-2}
+
+
+
 
 
 
