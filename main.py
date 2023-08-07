@@ -6,6 +6,14 @@ import itertools as it
 from numba import njit
 from numpy.linalg import matrix_power
 
+
+def Sort(sub_li):
+    # reverse = None (Sorts in Ascending order)
+    # key is set to sort using second element of
+    # sublist lambda has been used
+    sub_li.sort(key=lambda x: x[1])
+    return sub_li
+
 #BASIC QUIVER RELATED FUNCTIONS
 @njit
 def mutate(A, i):
@@ -566,8 +574,16 @@ class Coeff(): # this will allow us to quickly and accurately compute coefficien
             ans.append(float((total - self.reg)[0]))
         if numbered:
             k = {a for a in ans}
-            p = [(a,ans.count(a)) for a in k]
-            return p
+            p = [[int(a),ans.count(a)] for a in k]
+            P = sorted(p,key = lambda x : x[0],reverse=True)
+            if len(P) == 0:
+                return 0
+            else:
+                t = f'{P[0][1]}q^({P[0][0]})'
+                for j in range(1,len(P)):
+                    t += f'+{P[j][1]}q^({P[j][0]})'
+                print(t)
+                return ''
         else:
             return ans
 
